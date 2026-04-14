@@ -1,16 +1,15 @@
-# Task Management API 🚀
+# Task Management API 🚀 (Enhanced Version)
 
 ## 📌 Project Overview
 
 This is a secure and scalable **Task Management RESTful API** built using Node.js and Express.js.
 The application allows users to register, authenticate, and manage their tasks efficiently.
 
-This project demonstrates:
+### 🔥 Enhanced Features Added:
 
-* REST API design
-* Authentication using JWT
-* Integration with both SQL and NoSQL databases
-* Proper error handling and validation
+* ⏰ Real-time task reminders (event-driven simulation)
+* 🏷️ Task categorization and tagging
+* 🌐 External webhook integration with retry logic
 
 ---
 
@@ -24,6 +23,7 @@ This project demonstrates:
 * jsonwebtoken (JWT Authentication)
 * dotenv (Environment Variables)
 * express-validator (Validation)
+* axios (Webhook requests)
 
 ---
 
@@ -45,12 +45,15 @@ project-root/
 │   ├── validationMiddleware.js
 │
 │── models/
-│   ├── userModel.js (PostgreSQL)
-│   ├── taskModel.js (MongoDB)
+│   ├── userModel.js
+│   ├── taskModel.js
 │
 │── routes/
 │   ├── authRoutes.js
 │   ├── taskRoutes.js
+│
+│── utils/
+│   ├── reminder.js   👈 NEW
 │
 │── .env
 │── server.js
@@ -64,7 +67,7 @@ project-root/
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone <https://github.com/JJSinghRathore/Conversely>
+git clone https://github.com/JJSinghRathore/Conversely
 cd task-manager
 ```
 
@@ -80,7 +83,7 @@ npm install
 
 ### 3️⃣ Setup Environment Variables
 
-Create a `.env` file in root folder:
+Create a `.env` file:
 
 ```
 PORT=5000
@@ -94,6 +97,8 @@ PG_DATABASE=taskdb
 PG_PORT=5432
 
 MONGO_URI=mongodb://localhost:27017/taskdb
+
+WEBHOOK_URL=https://webhook.site/YOUR_UNIQUE_URL
 ```
 
 ---
@@ -104,7 +109,7 @@ MONGO_URI=mongodb://localhost:27017/taskdb
 npm run dev
 ```
 
-Server will run on:
+Server runs at:
 
 ```
 http://localhost:5000
@@ -121,7 +126,7 @@ JWT-based authentication is implemented.
 1. User registers
 2. User logs in
 3. Server returns JWT token
-4. Token is used in headers:
+4. Token is used in headers
 
 ```
 Authorization: Bearer <token>
@@ -133,42 +138,27 @@ Authorization: Bearer <token>
 
 ### 👤 Auth Routes
 
-#### Register User
+#### Register
 
 ```
 POST /api/auth/register
 ```
 
-Body:
-
-```json
-{
-  "email": "test@example.com",
-  "password": "123456"
-}
-```
-
----
-
-#### Login User
+#### Login
 
 ```
 POST /api/auth/login
 ```
 
----
-
-#### Get Profile
+#### Profile
 
 ```
 GET /api/auth/profile
 ```
 
-(Protected Route)
-
 ---
 
-### ✅ Task Routes
+## ✅ Task Routes
 
 #### Create Task
 
@@ -176,15 +166,11 @@ GET /api/auth/profile
 POST /api/tasks
 ```
 
----
-
 #### Get All Tasks
 
 ```
 GET /api/tasks
 ```
-
----
 
 #### Get Single Task
 
@@ -192,21 +178,87 @@ GET /api/tasks
 GET /api/tasks/:id
 ```
 
----
-
 #### Update Task
 
 ```
 PATCH /api/tasks/:id
 ```
 
----
-
 #### Delete Task
 
 ```
 DELETE /api/tasks/:id
 ```
+
+---
+
+## 🆕 Enhanced Features
+
+---
+
+### ⏰ Task Reminder System
+
+* When a task has a `dueDate`, a reminder is scheduled
+* Reminder triggers **1 hour before deadline**
+* Implemented using `setTimeout()` (event-driven simulation)
+* Logs message in console
+* Can also trigger webhook
+
+---
+
+### 🏷️ Category & Tags
+
+* Predefined categories:
+
+  * Work
+  * Personal
+  * Urgent
+
+* Multiple tags supported
+
+#### Example:
+
+```json
+{
+  "title": "Fix Bug",
+  "category": "Work",
+  "tags": ["urgent", "clientA"]
+}
+```
+
+---
+
+### 🔍 Filter Tasks
+
+```
+GET /api/tasks/filter?category=Work
+GET /api/tasks/filter?tag=urgent
+```
+
+---
+
+### 🌐 Webhook Integration
+
+* Triggered when task status = `completed`
+* Sends POST request to external service
+
+#### Payload:
+
+```json
+{
+  "id": "task_id",
+  "title": "Task title",
+  "userId": "user_id",
+  "completedAt": "timestamp"
+}
+```
+
+---
+
+### 🔁 Retry Logic
+
+* If webhook fails → retry 3 times
+* Uses delay (basic exponential backoff)
 
 ---
 
@@ -218,19 +270,23 @@ DELETE /api/tasks/:id
 * email (unique)
 * password (hashed)
 
+---
+
 ### MongoDB (Tasks)
 
 * title
 * description
 * dueDate
-* status (pending/completed)
-* userId (reference)
+* status
+* category
+* tags
+* userId
 
 ---
 
 ## ⚠️ Error Handling
 
-Global error handling middleware implemented for:
+Global error handling middleware:
 
 * 400 Bad Request
 * 401 Unauthorized
@@ -244,8 +300,8 @@ Global error handling middleware implemented for:
 
 * Email format validation
 * Required fields validation
-* Password length validation
-* Task fields validation
+* Password validation
+* Task validation
 
 ---
 
@@ -254,37 +310,54 @@ Global error handling middleware implemented for:
 * Password hashing using bcrypt
 * JWT authentication
 * Protected routes
-* User-specific data access
+* User-specific access control
 
 ---
 
 ## 🧠 Design Decisions
 
-* PostgreSQL used for structured user data
-* MongoDB used for flexible task storage
-* MVC architecture followed
-* Middleware used for clean code separation
+* PostgreSQL for structured user data
+* MongoDB for flexible task storage
+* MVC architecture
+* Middleware for separation of concerns
+* setTimeout used for lightweight event-driven simulation
+* Webhook retry ensures reliability
 
 ---
 
-🎥 Demo Video
+## 📌 Limitations
 
-Add your demo video link here:
+* Reminder lost if server restarts
+* No persistent queue
 
-<https://drive.google.com/file/d/1omZ4i9drK3hQZsq9wZXlUpqTx3c2-cIF/view?usp=drive_link>
+---
 
+## 🚀 Future Improvements
+
+* Use Redis + BullMQ
+* Email/SMS notifications
+* Role-based access
+* Priority system
+
+---
+
+## 🎥 Demo Video
+
+https://drive.google.com/file/d/11jt8hHlJlZ4m88gM_iz_Dm1nxYOXwbSJ/view?usp=drive_link
+---
 
 ## 🚀 Features Demonstrated
 
 * User registration & login
 * JWT authentication
-* CRUD operations on tasks
-* Authorization (user cannot access others' tasks)
-* Validation & error handling
+* CRUD operations
+* Authorization
+* Reminder system
+* Category & tags
+* Webhook integration
 
 ---
 
 ## 📌 Author
 
 Jatin Jai Singh Rathore
-
